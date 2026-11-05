@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -369,6 +371,10 @@ func TestAccResourceTsuruJobComplete(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
+			{
+				Config:      strings.Replace(testAccResourceTsuruJob_complete(), `"Forbid"`, `"forbid"`, 1),
+				ExpectError: regexp.MustCompile(`expected concurrency_policy to be one of \["Allow" "Forbid" "Replace"\], got forbid`),
+			},
 			{
 				Config: testAccResourceTsuruJob_complete(),
 				Check: resource.ComposeAggregateTestCheckFunc(
