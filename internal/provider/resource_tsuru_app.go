@@ -23,6 +23,7 @@ func resourceTsuruApplication() *schema.Resource {
 		UpdateContext: resourceTsuruApplicationUpdate,
 		ReadContext:   resourceTsuruApplicationRead,
 		DeleteContext: resourceTsuruApplicationDelete,
+		CustomizeDiff: customizeDiffMetadataAll,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
@@ -81,7 +82,8 @@ func resourceTsuruApplication() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"metadata": metadataSchema(),
+			"metadata":     metadataSchema(),
+			"metadata_all": metadataAllSchema(),
 			"process": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -226,12 +228,7 @@ func resourceTsuruApplicationCreate(ctx context.Context, d *schema.ResourceData,
 		Tags:      tags,
 	}
 
-	if m, ok := d.GetOk("metadata"); ok {
-		metadata := metadataFromResourceData(m)
-		if metadata != nil {
-			app.Metadata = *metadata
-		}
-	}
+	app.Metadata = desiredMetadata(d, provider)
 
 	if m, ok := d.GetOk("process"); ok {
 		processes := processesFromResourceData(m)
@@ -294,21 +291,8 @@ func resourceTsuruApplicationUpdate(ctx context.Context, d *schema.ResourceData,
 		app.Planoverride.CpuBurst = &cpuBurstValue
 	}
 
-	if d.HasChange("metadata") {
-		old, new := d.GetChange("metadata")
-		oldMetadata := metadataFromResourceData(old)
-		if oldMetadata == nil {
-			oldMetadata = &tsuru_client.Metadata{}
-		}
-		newMetadata := metadataFromResourceData(new)
-		if newMetadata == nil {
-			newMetadata = &tsuru_client.Metadata{}
-		}
-
-		app.Metadata = tsuru_client.Metadata{
-			Annotations: markRemovedMetadataItemAsDeleted(oldMetadata.Annotations, newMetadata.Annotations),
-			Labels:      markRemovedMetadataItemAsDeleted(oldMetadata.Labels, newMetadata.Labels),
-		}
+	if d.HasChanges("metadata", "metadata_all") {
+		app.Metadata = metadataForUpdate(d, provider)
 	}
 
 	if d.HasChange("process") {
@@ -392,7 +376,7 @@ func resourceTsuruApplicationRead(ctx context.Context, d *schema.ResourceData, m
 
 	d.Set("tags", app.Tags)
 
-	d.Set("metadata", flattenMetadata(app.Metadata))
+	setMetadata(d, provider, app.Metadata)
 	d.Set("internal_address", flattenInternalAddresses(app.InternalAddresses))
 	d.Set("router", flattenRouters(app.Routers))
 	d.Set("process", flattenProcesses(app.Processes))

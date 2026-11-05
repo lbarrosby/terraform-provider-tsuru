@@ -64,6 +64,7 @@ resource "tsuru_app" "my-app" {
 - `cluster` (String) The name of cluster
 - `id` (String) The ID of this resource.
 - `internal_address` (List of Object) (see [below for nested schema](#nestedatt--internal_address))
+- `metadata_all` (List of Object) All metadata of the resource, including the provider `default_metadata` (see [below for nested schema](#nestedatt--metadata_all))
 - `router` (List of Object) (see [below for nested schema](#nestedatt--router))
 
 <a id="nestedblock--metadata"></a>
@@ -117,6 +118,15 @@ Read-Only:
 - `process` (String)
 - `protocol` (String)
 - `version` (String)
+
+
+<a id="nestedatt--metadata_all"></a>
+### Nested Schema for `metadata_all`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `labels` (Map of String)
 
 
 <a id="nestedatt--router"></a>

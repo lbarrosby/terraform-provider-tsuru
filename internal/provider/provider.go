@@ -52,6 +52,7 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("TSURU_FULL_MANAGEMENT_OF_USER_ENVIRONMENT_VARIABLES", nil),
 			},
+			"default_metadata": defaultMetadataSchema(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"tsuru_service":                resourceTsuruService(),
@@ -107,6 +108,7 @@ type tsuruProvider struct {
 	HTTPClient         *http.Client
 	HTTPHeaders        http.Header
 	FullManagementEnvs bool
+	DefaultMetadata    metadataMaps
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData, terraformVersion string) (interface{}, diag.Diagnostics) {
@@ -179,6 +181,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData, terraformVer
 		HTTPClient:         cfg.HTTPClient,
 		HTTPHeaders:        httpHeaders,
 		FullManagementEnvs: fullManagementEnvs,
+		DefaultMetadata:    expandMetadataMaps(d.Get("default_metadata")),
 	}, nil
 }
 

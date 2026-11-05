@@ -23,6 +23,7 @@ func resourceTsuruJob() *schema.Resource {
 		UpdateContext: resourceTsuruJobUpdate,
 		ReadContext:   resourceTsuruJobRead,
 		DeleteContext: resourceTsuruJobDelete,
+		CustomizeDiff: customizeDiffMetadataAll,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
@@ -89,6 +90,7 @@ func resourceTsuruJob() *schema.Resource {
 					},
 				},
 			},
+			"metadata_all": metadataAllSchema(),
 
 			"schedule": {
 				Type:        schema.TypeString,
@@ -171,21 +173,8 @@ func resourceTsuruJobUpdate(ctx context.Context, d *schema.ResourceData, meta in
 	}
 	jobName := d.Id()
 
-	if d.HasChange("metadata") {
-		old, new := d.GetChange("metadata")
-		oldMetadata := metadataFromResourceData(old)
-		if oldMetadata == nil {
-			oldMetadata = &tsuru_client.Metadata{}
-		}
-		newMetadata := metadataFromResourceData(new)
-		if newMetadata == nil {
-			newMetadata = &tsuru_client.Metadata{}
-		}
-
-		job.Metadata = tsuru_client.Metadata{
-			Annotations: markRemovedMetadataItemAsDeleted(oldMetadata.Annotations, newMetadata.Annotations),
-			Labels:      markRemovedMetadataItemAsDeleted(oldMetadata.Labels, newMetadata.Labels),
-		}
+	if d.HasChanges("metadata", "metadata_all") {
+		job.Metadata = metadataForUpdate(d, provider)
 	}
 
 	err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
@@ -247,7 +236,7 @@ func resourceTsuruJobRead(ctx context.Context, d *schema.ResourceData, meta inte
 		d.Set(key, value)
 	}
 
-	d.Set("metadata", flattenMetadata(job.Job.Metadata))
+	setMetadata(d, provider, job.Job.Metadata)
 
 	return nil
 }
@@ -320,12 +309,7 @@ func inputJobFromResourceData(ctx context.Context, d *schema.ResourceData, provi
 		Container: container,
 	}
 
-	if m, ok := d.GetOk("metadata"); ok {
-		metadata := metadataFromResourceData(m)
-		if metadata != nil {
-			job.Metadata = *metadata
-		}
-	}
+	job.Metadata = desiredMetadata(d, provider)
 
 	if desc, ok := d.GetOk("description"); ok {
 		job.Description = desc.(string)

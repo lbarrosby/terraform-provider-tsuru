@@ -74,6 +74,7 @@ resource "tsuru_job" "full-featured-job" {
 
 - `cluster` (String) The name of cluster
 - `id` (String) The ID of this resource.
+- `metadata_all` (List of Object) All metadata of the resource, including the provider `default_metadata` (see [below for nested schema](#nestedatt--metadata_all))
 
 <a id="nestedblock--container"></a>
 ### Nested Schema for `container`
@@ -101,6 +102,15 @@ Optional:
 - `create` (String)
 - `delete` (String)
 - `update` (String)
+
+
+<a id="nestedatt--metadata_all"></a>
+### Nested Schema for `metadata_all`
+
+Read-Only:
+
+- `annotations` (Map of String)
+- `labels` (Map of String)
 
 ## Import
 
