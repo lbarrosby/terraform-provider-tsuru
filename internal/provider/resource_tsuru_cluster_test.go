@@ -309,3 +309,7 @@ resource "tsuru_cluster" "simple_cluster"   {
 }
 `
 }
+
+func TestResourceTsuruClusterClientKeyIsSensitive(t *testing.T) {
+	assert.True(t, resourceTsuruCluster().Schema["client_key"].Sensitive)
+}

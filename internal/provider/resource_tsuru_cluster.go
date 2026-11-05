@@ -54,6 +54,7 @@ func resourceTsuruCluster() *schema.Resource {
 			"client_key": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Sensitive:   true,
 				Description: "Client key to connect in cluster, must be enconded in base64",
 			},
 			"custom_data": {

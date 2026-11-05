@@ -63,7 +63,7 @@ resource "tsuru_cluster" "test_cluster" {
 - `addresses` (List of String) List of addresses to tsuru API connect in
 - `ca_cert` (String) CA certificate to connect in cluster, must be enconded in base64
 - `client_cert` (String) Client certificate to connect in cluster, must be enconded in base64
-- `client_key` (String) Client key to connect in cluster, must be enconded in base64
+- `client_key` (String, Sensitive) Client key to connect in cluster, must be enconded in base64
 - `custom_data` (Map of String) Key/value to store additional config
 - `default` (Boolean) Whether true, the cluster is the default for all pools
 - `http_proxy` (String) Client HTTP proxy
